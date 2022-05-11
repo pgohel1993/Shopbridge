@@ -18,6 +18,8 @@ using Microsoft.EntityFrameworkCore;
 using Shopbridge_base.Data;
 using Shopbridge_base.Domain.Services.Interfaces;
 using Shopbridge_base.Domain.Services;
+using Shopbridge_base.Data.IConfiguration;
+using Shopbridge_base.Data.UnitOfWork;
 
 namespace Shopbridge_base
 {
@@ -43,9 +45,16 @@ namespace Shopbridge_base
             });
 
             services.AddDbContext<Shopbridge_Context>(options =>
-                    options.UseSqlServer(Configuration.GetConnectionString("Shopbridge_Context")));
+                    options.UseSqlServer(Configuration.GetConnectionString("Shopbridge_Context"),
+                    sqlServerOptionsAction : sqlOptions => {
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount : 10,
+                            errorNumbersToAdd:null,
+                            maxRetryDelay:TimeSpan.FromSeconds(30));    
+                    }));
 
-            services.AddScoped<IProductService, ProductService>();
+           //services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
